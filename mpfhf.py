@@ -11,7 +11,7 @@
 #                        [Start]
 #   ---------> { message bit m (starting from left) }
 #   |                       |
-#   |          		    0   |   1
+#   |          	        0   |   1
 #   |           <-----------+------------->
 #   |   S.expand                        R.screw(S.len/2, m)
 #   |   R.screw(S.len, m)               { R[m] == S[m] }
@@ -21,10 +21,10 @@
 #   |   <---+---->                 S.expand            R.flip(m)
 #   | R.flip(m)   R.flip(m)        S.screw(R.len, m)     |
 #   | { m > 0 }   S.invert             |                 |
-#   |    |         |                   |                 |
+#   |    |         |                   | (path D)        |
 #   +----+------>  |                   v                 |
 #      T    F      -------------> [ Next m ] <------------
-#                              
+#(path A) (path B)    (path C)                   (path E)   
 #
 
 from copy import deepcopy
@@ -63,6 +63,7 @@ class Revister(Register):
 
 def check(m, oldbits, R, S, L):
 	if m == 0 and R.val(m) == 1 and S.length() > 1 and S.val(-1) == 0:
+		# this is path B, only if on step 0, R[m] was 0 then flipped, S was expanded
 		Rt, St = deepcopy(R), deepcopy(S)
 		Rt.flip(m)
 		Rt.screw(St.length(), m)
@@ -72,6 +73,7 @@ def check(m, oldbits, R, S, L):
 			return newbits
 	
 	if R.val(m) == 0 and S.length() > 1 and S.val(-1) == 1:
+		# this is path C, R[m] was 1 then flipped, S was expanded then inverted
 		Rt, St = deepcopy(R), deepcopy(S)
 		St.invert()
 		Rt.flip(m)
@@ -92,6 +94,7 @@ def check(m, oldbits, R, S, L):
 				return t
 	
 	if R.val(m) == S.val(m):
+		# this is path E, R[m] was not = S[m], R[m] was then flipped
 		Rt, St = deepcopy(R), deepcopy(S)
 		Rt.flip(m)
 		Rt.screw(St.length()/2, m)
@@ -107,6 +110,7 @@ def check(m, oldbits, R, S, L):
 	if S.length() > 1 and \
 			S.val(-1)^(countflips(S.length(), R.length(), m, -1) % 2) == 0 and \
 			S.val(m%(S.length()-1))^(countflips(S.length(), R.length(), m, m) % 2) == R.val(m):
+		# this is path D, R[m] was = S[m], S was screwed then expanded
 		Rt, St = deepcopy(R), deepcopy(S)
 		St.screw(Rt.length(), m)
 		St.despand()
@@ -124,6 +128,7 @@ def check(m, oldbits, R, S, L):
 
 def cyclecheck(m, oldbits, R, S, L):
 	if R.val(m) == 1 and S.length() > 1 and S.val(-1) == 0:
+		# this is path A, R[m] was 0 then flipped, S was expanded
 		Rt, St = deepcopy(R), deepcopy(S)
 		Rt.flip(m)
 		Rt.screw(St.length(), m)
