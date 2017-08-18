@@ -9,21 +9,21 @@
 # A walkthrough of the mpfhf
 #
 #                        [Start]
-#   ---------> { bit m (starting from left) }
+#   ---------> { message bit m (starting from left) }
 #   |                       |
-#   |          		0   |   1
+#   |          		    0   |   1
 #   |           <-----------+------------->
 #   |   S.expand                        R.screw(S.len/2, m)
 #   |   R.screw(S.len, m)               { R[m] == S[m] }
-#   |   { R[n] }                               |
-#   |       |                             T    |   F
+#   |   { R[m] }                               |
+#   |       |                              T   |   F
 #   |    0  |  1                      <--------+------->
-#   |   <---+---->                  S.expand           R.flip(m)
-#   | R.flip(m)  R.flip(m)          S.screw(R.len, m)    |
-#   | { m > 0 }  S.invert              |                 |
-#   |    |        |                    |                 |
-#   +----+------> |                    v                 |
-#      T    F     --------------> [ Next m ] <------------
+#   |   <---+---->                 S.expand            R.flip(m)
+#   | R.flip(m)   R.flip(m)        S.screw(R.len, m)     |
+#   | { m > 0 }   S.invert             |                 |
+#   |    |         |                   |                 |
+#   +----+------>  |                   v                 |
+#      T    F      -------------> [ Next m ] <------------
 #                              
 #
 
@@ -94,7 +94,7 @@ def check(m, oldbits, R, S, L):
 	if R.val(m) == S.val(m):
 		Rt, St = deepcopy(R), deepcopy(S)
 		Rt.flip(m)
-		Rt.screw(S.length()/2, m)
+		Rt.screw(St.length()/2, m)
 		newbits = '1'+oldbits
 		if len(newbits) == L:
 			if St.show() == '0' and Rt.show() == '0'*Rt.length():
@@ -105,13 +105,13 @@ def check(m, oldbits, R, S, L):
 				return t
 	
 	if S.length() > 1 and \
-				S.val(-1)^(countflips(S.length(), R.length(), m, -1)%2) == 0 and \
-				S.val(m%(S.length()-1))^(countflips(S.length(), R.length(), m, m) % 2) == R.val(m):
+			S.val(-1)^(countflips(S.length(), R.length(), m, -1) % 2) == 0 and \
+			S.val(m%(S.length()-1))^(countflips(S.length(), R.length(), m, m) % 2) == R.val(m):
 		Rt, St = deepcopy(R), deepcopy(S)
 		St.screw(Rt.length(), m)
 		St.despand()
-		Rt.screw(St.length()/2, m)
-		newbits = '1'+oldbits
+		Rt.screw(St.length() / 2, m)
+		newbits = '1' + oldbits
 		if len(newbits) == L:
 			if St.show() == '0' and Rt.show() == '0'*Rt.length():
 				return newbits
@@ -123,7 +123,7 @@ def check(m, oldbits, R, S, L):
 	return False
 
 def cyclecheck(m, oldbits, R, S, L):
-	if R.val(m) == 1 and S.length() > 1 and S.val(-1) == 1:
+	if R.val(m) == 1 and S.length() > 1 and S.val(-1) == 0:
 		Rt, St = deepcopy(R), deepcopy(S)
 		Rt.flip(m)
 		Rt.screw(St.length(), m)
